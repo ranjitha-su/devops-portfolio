@@ -2,24 +2,21 @@
 
 ---
 
-## Project Description
+## ✅ Project Description
 
 This project demonstrates how to:
 
-- Build a simple **Java (Maven) web application**
-- Containerize it using Docker
-- Push the image to a **private DockerHub repository**
 - Provision an **Amazon EKS cluster using eksctl**
-- Deploy the application to Kubernetes using `kubectl`
-- Expose it using **NGINX Ingress Controller**
-- Scale the application based on traffic
+- Deploy a containerized Java application to Kubernetes using `kubectl`
+- Expose the application using a **Service of type LoadBalancer**
+- Scale the application by adjusting replica counts based on traffic
 
 This is a **foundational DevOps project** focused on understanding Kubernetes deployment flow end-to-end without CI/CD automation.  
 (Jenkins will be introduced in the next project.)
 
 ---
 
-## Project Structure
+## ✅ Project Structure
 
 ```
 .
@@ -66,9 +63,7 @@ eksctl version
 aws --version
 ```
 
-## 🐳 Containerization
-
-## 🐳 Containerization
+## ✅ Containerization
 
 The application was packaged into a Docker container by building the app and image inside a multi-stage Dockerfile.
 
@@ -78,7 +73,7 @@ The application was packaged into a Docker container by building the app and ima
 
 ---
 
-## Amazon EKS Setup
+## ✅ Amazon EKS Setup
 
 The Kubernetes cluster was created using **eksctl**.
 
@@ -100,7 +95,7 @@ kubectl get nodes
 
 ---
 
-## Deployment
+## ✅ Deployment
 
 Deployment is done manually using `kubectl`. (Subsequent projects automate this using Jenkins CI/CD)
 
@@ -120,7 +115,7 @@ kubectl get svc
 
 ---
 
-## Scaling
+## ✅ Scaling
 
 Scaling can be managed by adjusting the replica count(based on traffic) in:
 
@@ -151,7 +146,7 @@ This allows the application to handle increased traffic.
 
 ---
 
-## 🌐 Application Access
+## ✅ Application Access
 
 The application is exposed using a Kubernetes Service of type **LoadBalancer**.
 
@@ -182,7 +177,7 @@ Pods
 ```
 ---
 
-## 🔍 Verification Commands
+## ✅ Verification Commands
 
 ```bash
 kubectl get nodes
@@ -194,7 +189,7 @@ kubectl describe pod <pod-name>
 
 ---
 
-## 🧹 Cleanup
+## ✅ Cleanup
 
 To delete the application:
 
@@ -211,7 +206,7 @@ eksctl delete cluster -f eksctl/eks-config.yaml
 
 ---
 
-## Key DevOps Concepts Demonstrated
+## ✅ Key DevOps Concepts Demonstrated
 
 - Docker image build and private DockerHub registry management
 - Amazon EKS cluster provisioning using eksctl using config file
@@ -222,7 +217,7 @@ eksctl delete cluster -f eksctl/eks-config.yaml
 
 ---
 
-## Next Step
+## ✅ Next Step
 
 In the next project:
 
