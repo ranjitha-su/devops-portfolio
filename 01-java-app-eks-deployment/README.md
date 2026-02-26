@@ -95,6 +95,17 @@ kubectl get nodes
 
 ---
 
+## ✅ Credentials
+
+Create kubernetes secret for the kubernetes manifests to download the docker image
+```bash
+kubectl create secret docker-registry dockerhub-creds -n <namespace> \
+--docker-server=https://index.docker.io/v1/ \
+--docker-username=<dockerhub-username> \
+--docker-password=<dockerhub-password> \
+--docker-email=<email-address>
+```
+
 ## ✅ Deployment
 
 Deployment is done manually using `kubectl`. (Subsequent projects automate this using Jenkins CI/CD)
