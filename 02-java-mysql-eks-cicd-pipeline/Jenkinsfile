@@ -31,17 +31,16 @@ pipeline {
             }
         }
         stage('Deploy') {
-            environment {
-                KUBECONFIG = ""
-            }
             steps{
                 script {
-                    sh "kubectl apply -f kubernetes/mysql/secret.yaml"
-                    sh "kubectl apply -f kubernetes/mysql/config.yaml"
-                    sh "kubectl apply -f kubernetes/mysql/deployment.yaml"
-                    sh "kubectl apply -f kubernetes/mysql/service.yaml"
-                    sh "envsubst < kubernetes/app/deployment.yaml | kubectl apply -f -"
-                    sh "envsubst < kubernetes/app/service.yaml | kubectl apply -f -"
+                    withCredentials([file(credentialsId: 'DEV_EKS_KUBECONFIG', variable: 'KUBECONFIG')]){
+                        sh "kubectl apply -f kubernetes/mysql/secret.yaml"
+                        sh "kubectl apply -f kubernetes/mysql/config.yaml"
+                        sh "kubectl apply -f kubernetes/mysql/deployment.yaml"
+                        sh "kubectl apply -f kubernetes/mysql/service.yaml"
+                        sh "envsubst < kubernetes/app/deployment.yaml | kubectl apply -f -"
+                        sh "envsubst < kubernetes/app/service.yaml | kubectl apply -f -"
+                    }
                 }
             }
         }
