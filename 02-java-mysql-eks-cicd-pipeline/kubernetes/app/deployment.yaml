@@ -16,10 +16,11 @@ spec:
     spec:
       # kubenrnetes secret - type docker-registry
       imagePullSecrets:
-        - dockerhub-creds
+        - name: dockerhub-creds
       containers:
         - name: java-mysql-app
-          image: ${REPO_NAME}/{IMAGE_NAME}:${TAG}
+          image: "${REPO_NAME}/${IMAGE_NAME}:${TAG}"
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -34,19 +35,24 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 5
-      env:
-        - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: mysql_user
-        - name: DB_PWD
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-secret
-              key: mysql_password
-        - name: DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: students_database
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql_user
+            - name: DB_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql_password
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config
+                  key: database_name
+            - name: DB_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config
+                  key: db_server
