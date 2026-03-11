@@ -1,0 +1,9 @@
+/.idea/
+.DS_Store
+modules/.DS_Store
+.terraform/
+terraform.tfstate*
+.terraform.tfstate.lock.info
+/terraform.tfvars
+
+
