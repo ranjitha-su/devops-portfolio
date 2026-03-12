@@ -1,0 +1,61 @@
+- name: Install kubectl prerequisites
+  community.docker.docker_container_exec:
+    container: jenkins-server
+    user: root
+    command: sh -c "apt update && apt install -y curl gnupg ca-certificates"
+- name: Check if kubectl already installed
+  community.docker.docker_container_exec:
+    container: jenkins-server
+    user: root
+    command: sh -c "command -v kubectl"
+  failed_when: false
+  changed_when: false
+  ignore_errors: yes
+  register: kubectl_check
+- name: Does kubectl exist?
+  ansible.builtin.debug:
+    msg: "kubectl tool {{ 'exists' if kubectl_check.rc == 0 else 'does not exist' }}"
+- name: Start kubectl install
+  block:
+    - name: Ensure keyrings directory exists
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: mkdir -p /etc/apt/keyrings
+
+    - name: Add Kubernetes apt key
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: >
+          sh -c 'curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key
+          | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg'
+
+    - name: Add Kubernetes repo
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: >
+          sh -c 'echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg]
+          https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /"
+          > /etc/apt/sources.list.d/kubernetes.list'
+
+    - name: Install kubectl
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: sh -c 'apt update && apt install -y kubectl'
+
+      register: kubectl_result
+    - name: kubectl installation results
+      ansible.builtin.debug:
+        msg: "{{ kubectl_result }}"
+  when: kubectl_check.rc != 0
+- name: Restart jenkins docker container
+  community.docker.docker_container:
+    name: jenkins-server
+    state: started
+    restart: true
+    recreate: false
+  tags:
+    kubectl

@@ -1,0 +1,34 @@
+- name: Check if docker already installed
+  community.docker.docker_container_exec:
+    container: jenkins-server
+    user: root
+    command: sh -c "command -v docker"
+  register: docker_cli_check
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+- name: Does container exist?
+  ansible.builtin.debug:
+    msg: "docker tool {{ 'exists' if docker_cli_check.rc == 0 else 'does not exist' }}"
+- name: Install docker only if doesn't exist
+  block:
+    - name: Install docker
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: /bin/bash -c "curl https://get.docker.com > /tmp/dockerinstall && chmod 777 /tmp/dockerinstall && /tmp/dockerinstall"
+      register: docker_cli_result
+    - name: docker_cli installation in docker result
+      ansible.builtin.debug:
+        msg: "{{docker_cli_result.stdout}}"
+  when: docker_cli_check.rc != 0
+- name: Update docker sock permissions on server(not inside container)
+  ansible.builtin.file:
+    path: /var/run/docker.sock
+    mode: '666'
+- name: Restart jenkins docker container
+  community.docker.docker_container:
+    name: jenkins-server
+    state: started
+    restart: true
+    recreate: false

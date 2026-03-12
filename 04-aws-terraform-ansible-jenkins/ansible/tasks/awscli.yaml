@@ -1,0 +1,37 @@
+- name: Check if awscli already installed
+  community.docker.docker_container_exec:
+    container: jenkins-server
+    user: root
+    command: sh -c "command -v aws"
+  failed_when: false
+  changed_when: false
+  ignore_errors: yes
+  register: awscli_check
+- name: Does awscli exist?
+  ansible.builtin.debug:
+    msg: "awscli tool {{ 'exists' if awscli_check.rc == 0 else 'does not exist' }}"
+- name: Start awscli install
+  block:
+    - name: Install unzip
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: sh -c "apt update && apt install -y unzip"
+    - name: Download awscli
+      community.docker.docker_container_exec:
+        container: jenkins-server
+        user: root
+        command: sh -c "curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip > /tmp/awscli.zip && unzip /tmp/awscli.zip -d /tmp &&  /tmp/aws/install"
+      register: awscli_result
+    - name: awscli installation results
+      ansible.builtin.debug:
+        msg: "{{ awscli_result }}"
+  when: awscli_check.rc != 0
+- name: Restart jenkins docker container
+  community.docker.docker_container:
+    name: jenkins-server
+    state: started
+    restart: true
+    recreate: false
+  tags:
+    aws

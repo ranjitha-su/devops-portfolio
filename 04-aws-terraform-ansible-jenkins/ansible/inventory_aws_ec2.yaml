@@ -1,0 +1,10 @@
+---
+plugin: aws_ec2
+region: us-west-2
+
+#filters:
+#  tag:Role: jenkins
+
+#keyed_groups:
+#  - prefix: role
+#    key: tags.Role

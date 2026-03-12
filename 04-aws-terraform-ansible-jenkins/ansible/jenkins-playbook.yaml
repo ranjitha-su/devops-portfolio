@@ -1,0 +1,94 @@
+---
+# - name: Wait 100 seconds, but only start checking after 10 seconds
+#   hosts: jenkins_droplet
+#   gather_facts: False
+#   tasks:
+#     - name: Wait for server to be reachable
+#       ansible.builtin.wait_for_connection:
+#         delay: 10
+#         timeout: 100
+
+- name: Install docker
+  hosts: role_jenkins
+  become: yes
+  tasks:
+    - name: Include docker tasks
+      include_tasks: tasks/docker.yaml
+
+
+- name: Start jenkins docker container
+  hosts: role_jenkins
+  become: yes
+  tasks:
+    - name: Start jenkins server as a container
+      include_tasks: tasks/jenkins_as_container.yaml
+
+
+- name: Install plugin on jenkins container
+  hosts: role_jenkins
+  become: yes
+  vars:
+    plugins_file_path_src: "/Users/ranjithas/repos/ranjitha-projects/configuration-management/ansible-jenkins/plugins.txt"
+    plugins_file_path_dest: "/tmp/plugins.txt"
+  tasks:
+    - name: Check if plugins.txt exists on remote server
+      ansible.builtin.stat:
+        path: "{{ plugins_file_path_dest }}"
+      register: plugins_file_check
+    - name: Does plugins.txt exist on remote server ?
+      ansible.builtin.debug:
+        msg: "Plugins.txt {{ 'exists' if plugins_file_check.stat.exists else 'does not exist' }}"
+    - name: Install Jenkins plugins inside jenkins container
+      block:
+        - name: Print plugins_file_path
+          ansible.builtin.debug:
+            msg: "Copying plugins.txt from local path {{ plugins_file_path_src }} to {{ plugins_file_path_dest }} inside jenkins container"
+        - name: Copy plugins.txt from local to jenkins-server droplet first
+          ansible.builtin.copy:
+            src: "{{ plugins_file_path_src }}"
+            dest: "{{ plugins_file_path_dest }}"
+        - name: Copy from remote server into the container
+          community.docker.docker_container_copy_into:
+            container: jenkins-server
+            path: "{{ plugins_file_path_dest }}"
+            container_path: "{{ plugins_file_path_dest }}"
+        - name: Install plugins
+          community.docker.docker_container_exec:
+            container: jenkins-server
+            command: /bin/bash -c "jenkins-plugin-cli --plugin-file {{plugins_file_path_dest}} --plugins delivery-pipeline-plugin:1.3.2 deployit-plugin"
+          register: plugins_result
+        - name: Plugins installation result
+          ansible.builtin.debug:
+            msg: "{{plugins_result}}"
+      when: not plugins_file_check.stat.exists
+    - name: Restart jenkins docker container
+      community.docker.docker_container:
+        name: jenkins-server
+        state: started
+        restart: true
+        recreate: false
+
+- name: Install awscli
+  hosts: role_jenkins
+  become: yes
+  tasks:
+    - name: Install awscli
+      include_tasks: tasks/awscli.yaml
+
+- name: Install kubectl
+  hosts: role_jenkins
+  become: yes
+  tasks:
+    - name: Install kubectl
+      include_tasks: tasks/kubectl.yaml
+
+
+- name: Install docker-cli inside jenkins docker container
+  hosts: role_jenkins
+  become: yes
+  tasks:
+    - name: Install docker inside jenkins docker container
+      include_tasks: tasks/docker_cli_in_docker.yaml
+
+
+

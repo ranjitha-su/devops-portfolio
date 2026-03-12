@@ -1,0 +1,22 @@
+- name: Check if jenkins container exists
+  community.docker.docker_container_info:
+    name: jenkins-server
+  register: jenkins_container_check
+- name: Does container exist?
+  ansible.builtin.debug:
+    msg: "Jenkins container {{ 'exists' if jenkins_container_check.exists else 'does not exist' }}"
+- name: Start jenkins docker container
+  block:
+    - name: start container
+      community.docker.docker_container:
+        name: jenkins-server
+        image: jenkins/jenkins:lts-jdk17
+        state: started
+        detach: true
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - "jenkins_home:/var/jenkins_home"
+          - "/var/run/docker.sock:/var/run/docker.sock"
+  when: not jenkins_container_check.exists
